@@ -293,6 +293,7 @@ class Player {
         this.width = 40;
         this.height = 40;
         this.speed = spd;
+        this.isAlive = true;
 
         if(img != null){
             this.image = load_image(img);
@@ -314,6 +315,9 @@ class Player {
     }
 
     move(dx, dy, tilemap) {
+
+        if(!this.isAlive) return
+        
         // Move horizontally
         this.x += dx;
         this.collide(dx, 0, tilemap);
@@ -340,6 +344,24 @@ class Player {
 
                     const tileType = tilemap.map[y][x];
                     const tile = tile_dictionary[tileType];
+
+                    if (tile.spike) {
+
+                        const tileRect = {
+                            x: x * TILE_SIZE,
+                            y: y * TILE_SIZE,
+                            width: TILE_SIZE,
+                            height: TILE_SIZE
+                        };
+
+                        if (this.intersects(tileRect)) {
+
+                            this.isAlive = false;
+
+                            console.log("die")
+
+                        }
+                    }
 
                     if (tile.solid) {
 
@@ -390,6 +412,14 @@ class Player {
             ctx.fillStyle = "rgb(100, 200, 255)";
             ctx.fillRect(this.x, this.y, this.width, this.height);
         }
+
+        if(!player.isAlive) {
+            ctx.fillStyle = "white";
+            ctx.font = "40px Arial";
+            ctx.textAlign = "center";
+
+            ctx.fillText("You Lose!", canvas.width / 2, canvas.height / 2);
+        } 
     }
 }
 
@@ -438,6 +468,83 @@ class Goal {
         ctx.textAlign = "center";
 
         ctx.fillText("You Win!", canvas.width / 2, canvas.height / 2);
+    }
+}
+
+class Fireball {
+    constructor(startX, startY, targetX, targetY, speed = 5, img = null) {
+        this.size = 40;
+
+        this.x = startX * TILE_SIZE + (TILE_SIZE / 2) - (this.size / 2);
+        this.y = startY * TILE_SIZE + (TILE_SIZE / 2) - (this.size / 2);
+
+        this.spawnX = this.x;
+        this.spawnY = this.y;
+
+        this.targetX = targetX * TILE_SIZE + (TILE_SIZE / 2) - (this.size / 2);
+        this.targetY = targetY * TILE_SIZE + (TILE_SIZE / 2) - (this.size / 2);
+
+        this.speed = speed;
+
+        const dx = this.targetX - this.x;
+        const dy = this.targetY - this.y;
+
+        const distance = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+
+        this.velX = (dx / distance) * this.speed;
+        this.velY = (dy / distance) * this.speed;
+
+        this.forward = true;
+
+        this.image = img ? loadImage(img) : null;
+    }
+
+    update() {
+        if (this.forward) {
+            this.x += this.velX;
+            this.y += this.velY;
+
+            if (
+                Math.abs(this.x - this.targetX) < this.speed &&
+                Math.abs(this.y - this.targetY) < this.speed
+            ) {
+                this.forward = false;
+            }
+        } else {
+            this.x -= this.velX;
+            this.y -= this.velY;
+
+            if (
+                Math.abs(this.x - this.spawnX) < this.speed &&
+                Math.abs(this.y - this.spawnY) < this.speed
+            ) {
+                this.forward = true;
+            }
+        }
+    }
+
+    checkCollision(player) {
+        return (
+            this.x < player.x + player.width &&
+            this.x + this.size > player.x &&
+            this.y < player.y + player.height &&
+            this.y + this.size > player.y
+        );
+    }
+
+    draw() {
+        if (this.image) {
+            ctx.drawImage(
+                this.image,
+                this.x,
+                this.y,
+                this.size,
+                this.size
+            );
+        } else {
+            ctx.fillStyle = "orange";
+            ctx.fillRect(this.x, this.y, this.size, this.size);
+        }
     }
 }
 `,
@@ -503,6 +610,7 @@ class Player {
         this.width = 40;
         this.height = 40;
         this.speed = spd;
+        this.isAlive = true;
 
         this.velocity = 0;
         this.jumpForce = -15;
@@ -532,6 +640,9 @@ class Player {
     }
 
     move(dx, dy, tilemap) {
+
+        if(!this.isAlive) return
+
         // Move horizontally
         this.x += dx;
         this.collide(dx, 0, tilemap);
@@ -564,6 +675,24 @@ class Player {
 
                     const tileType = tilemap.map[y][x];
                     const tile = tile_dictionary[tileType];
+
+                    if (tile.spike) {
+
+                        const tileRect = {
+                            x: x * TILE_SIZE,
+                            y: y * TILE_SIZE,
+                            width: TILE_SIZE,
+                            height: TILE_SIZE
+                        };
+
+                        if (this.intersects(tileRect)) {
+
+                            this.isAlive = false;
+
+                            console.log("die")
+
+                        }
+                    }
 
                     if (tile.solid) {
 
@@ -617,6 +746,14 @@ class Player {
             ctx.fillStyle = "rgb(100, 200, 255)";
             ctx.fillRect(this.x, this.y, this.width, this.height);
         }
+
+        if(!player.isAlive) {
+            ctx.fillStyle = "white";
+            ctx.font = "40px Arial";
+            ctx.textAlign = "center";
+
+            ctx.fillText("You Lose!", canvas.width / 2, canvas.height / 2);
+        } 
     }
 }
 
@@ -665,6 +802,83 @@ class Goal {
         ctx.textAlign = "center";
 
         ctx.fillText("You Win!", canvas.width / 2, canvas.height / 2);
+    }
+}
+
+class Fireball {
+    constructor(startX, startY, targetX, targetY, speed = 5, img = null) {
+        this.size = 40;
+
+        this.x = startX * TILE_SIZE + (TILE_SIZE / 2) - (this.size / 2);
+        this.y = startY * TILE_SIZE + (TILE_SIZE / 2) - (this.size / 2);
+
+        this.spawnX = this.x;
+        this.spawnY = this.y;
+
+        this.targetX = targetX * TILE_SIZE + (TILE_SIZE / 2) - (this.size / 2);
+        this.targetY = targetY * TILE_SIZE + (TILE_SIZE / 2) - (this.size / 2);
+
+        this.speed = speed;
+
+        const dx = this.targetX - this.x;
+        const dy = this.targetY - this.y;
+
+        const distance = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+
+        this.velX = (dx / distance) * this.speed;
+        this.velY = (dy / distance) * this.speed;
+
+        this.forward = true;
+
+        this.image = img ? loadImage(img) : null;
+    }
+
+    update() {
+        if (this.forward) {
+            this.x += this.velX;
+            this.y += this.velY;
+
+            if (
+                Math.abs(this.x - this.targetX) < this.speed &&
+                Math.abs(this.y - this.targetY) < this.speed
+            ) {
+                this.forward = false;
+            }
+        } else {
+            this.x -= this.velX;
+            this.y -= this.velY;
+
+            if (
+                Math.abs(this.x - this.spawnX) < this.speed &&
+                Math.abs(this.y - this.spawnY) < this.speed
+            ) {
+                this.forward = true;
+            }
+        }
+    }
+
+    checkCollision(player) {
+        return (
+            this.x < player.x + player.width &&
+            this.x + this.size > player.x &&
+            this.y < player.y + player.height &&
+            this.y + this.size > player.y
+        );
+    }
+
+    draw() {
+        if (this.image) {
+            ctx.drawImage(
+                this.image,
+                this.x,
+                this.y,
+                this.size,
+                this.size
+            );
+        } else {
+            ctx.fillStyle = "orange";
+            ctx.fillRect(this.x, this.y, this.size, this.size);
+        }
     }
 }
 `
